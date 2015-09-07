@@ -10,3 +10,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Detect bold and emphasis markup when enclosed by square brackets
 
+### Changed
+- Add input.txt and output.html reference documents
+
+
