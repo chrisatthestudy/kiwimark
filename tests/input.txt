@@ -14,4 +14,20 @@ exercise all the features implemented by Kiwimark.
   * Header 3 (SETEXT style)
 * Lists
   * Sub-lists
+* Blocks
+  * Pre
+  * Code
 
+    Some text which should be output exactly
+    as it is, including line-breaks, and
+    without **any other formatting**.
+    
+code:c
+#include <stdio.h>
+
+int main(int argc, char *argv[])
+{
+    printf("Hello, world!");
+    return 0;
+}
+:code

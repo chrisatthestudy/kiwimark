@@ -64,6 +64,17 @@ FOOTNOTE_REGEX = r"\[\^([0-9]+)\]"
 # FOOTNOTE_TARGET_REGEX for footnote targets (links to footnote_ref_nn)
 FOOTNOTE_TARGET_REGEX = r"\[\^([0-9]+)\]:"
 
+# CODEBLOCK_START_REGEX finds the beginning of a block of text that should
+# be formatted as code. The marker can optionally include a language
+# name after the 'code:' marker, but should otherwise be on a line on its
+# own.
+CODEBLOCK_START_REGEX = r"^[\s]*code:([^\s]*)[\s]*$"
+
+# CODEBLOCK_END_REGEX finds the marker for the end of a block of text
+# that should be formatted as code. The marker should be on a line on its
+# own.
+CODEBLOCK_END_REGEX = r"^[\s]*:code[\s]*$"
+
 class KiwiMarkup:
     """
     Main processing class. Call the execute() method to process a list of
@@ -288,6 +299,24 @@ class KiwiMarkup:
             self.output.append('</p>')
             self.state.inOrgSection = False
 
+    def startCodeSection(self):
+        """
+        Starts a block of text that should be formatted as code
+        """
+        if not self.state.inCodeSection:
+            self.output.append('<pre>')
+            self.output.append('<code>')
+            self.state.inCodeSection = True
+
+    def endCodeSection(self):
+        """
+        Ends a block of code
+        """
+        if self.state.inCodeSection:
+            self.output.append('</code>')
+            self.output.append('</pre>')
+            self.state.inCodeSection = False
+            
     def endAllSections(self):
         """
         Closes any/all open tags
@@ -367,6 +396,20 @@ class KiwiMarkup:
                 self.startOrgSection()
                 self.thisLine = "%s<br/>" % self.thisLine
 
+            elif self.line.isCodeStart:
+                self.endAllSections()
+                self.startCodeSection()
+                includeLine = False
+
+            elif self.line.isCodeEnd:
+                self.endCodeSection()
+                includeLine = False
+                
+            elif self.state.inCodeSection:
+                # If we are in a code section, we don't want to do any
+                # other processing of the line
+                pass
+            
             elif self.line.isList:
                 self.endOrgSection()
                 self.endBlock()
@@ -416,12 +459,11 @@ class KiwiMarkup:
                 self.endAllLists()
                 self.endTable()
                 self.endParagraph()
-                # Do not output blank lines unless we are in a 'PRE' block
-                if not self.state.inBlock:
-                    includeLine = False
+                # Do not output blank lines
+                includeLine = False
 
             if includeLine:
-                if not self.state.inBlock:
+                if not self.state.inBlock and not self.state.inCodeSection:
                     if not self.line.isOrgHeader:
                         self.thisLine = self.boldStartPattern.sub(r"\1<b>\3", self.thisLine)
                         self.thisLine = self.boldEndPattern.sub(r"\1</b>\3", self.thisLine)
@@ -447,6 +489,7 @@ class KiwiState:
     inList = False
     inBlock = False
     inOrgSection = False
+    inCodeSection = False
 
 class KiwiLineScanner:
     """
@@ -476,6 +519,8 @@ class KiwiLineScanner:
         self.headerPattern = re.compile(HEADER_REGEX)
         self.listPattern   = re.compile(LIST_REGEX)
         self.tableHeaderPattern = re.compile(TABLE_HEADER_REGEX)
+        self.codeStartPattern = re.compile(CODEBLOCK_START_REGEX)
+        self.codeEndPattern = re.compile(CODEBLOCK_END_REGEX)
         self.mode = mode
 
     def reset(self):
@@ -487,6 +532,8 @@ class KiwiLineScanner:
         self.isBlankLine = False
         self.isBlock = False
         self.isOrgHeader = False
+        self.isCodeStart = False
+        self.isCodeEnd = False
 
         self.skipNextLine = False
 
@@ -497,6 +544,8 @@ class KiwiLineScanner:
         self.listText = ""
         self.isNestedList = False
 
+        self.codeLanguage = ""
+        
         self.tableColumns = []
 
     def scan(self, thisLine, nextLine, state):
@@ -516,6 +565,8 @@ class KiwiLineScanner:
             self.check_for_table(thisLine, nextLine)
             self.check_for_block(thisLine)
             self.check_for_horizontal_line(thisLine)
+            self.check_for_code_start(thisLine)
+            self.check_for_code_end(thisLine)
             if self.mode == KIWI_MODE_ORG:
                 self.check_for_org_header(thisLine)
 
@@ -619,6 +670,18 @@ class KiwiLineScanner:
         if thisLine.strip()[0] == "*":
             self.isParagraph = False
             self.isOrgHeader = True
+
+    def check_for_code_start(self, thisLine):
+        match = re.search(self.codeStartPattern, thisLine)
+        if match:
+            self.isCodeStart = True
+            self.codeLanguage = match.group(1)
+
+    def check_for_code_end(self, thisLine):
+        match = re.search(self.codeEndPattern, thisLine)
+        if match:
+            self.isCodeEnd = True
+            self.codeLanguage = ""
 
 if __name__ == "__main__":
 

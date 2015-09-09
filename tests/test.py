@@ -260,6 +260,32 @@ if (__name__ == "__main__"):
             self.assertNotEqual(len(m.groups()), 0)
             self.assertEqual(m.group(1), "1")
 
+        def testCodeBlockStartRegex(self):
+            regex = kiwimark.CODEBLOCK_START_REGEX
+
+            # No match
+            m = re.search(regex, "There is no code: marker here")
+            self.assertEqual(m, None)
+
+            # Simple match
+            m = re.search(regex, "code:\n")
+            self.assertNotEqual(len(m.groups()), 0)
+
+            # Match with language specified
+            m = re.search(regex, "code:javascript\n")
+            self.assertNotEqual(len(m.groups()), 0)
+            self.assertEqual(m.group(1), "javascript")
+
+        def testCodeBlockEndRegex(self):
+            regex = kiwimark.CODEBLOCK_END_REGEX
+
+            # No match
+            m = re.search(regex, "There is no :code marker here")
+
+            # Simple match
+            m = re.search(regex, ":code\n")
+            self.assertNotEqual(m, None)
+            
     unittest.main()
 
 
