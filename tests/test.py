@@ -3,14 +3,23 @@
 """
 KiwiMarkup Test Unit
 
-Run using 'python tests.py'
+Run using 'python test.py'
 """
 
 # Standard library imports
+
+import imp
 import re
 
 # Application specific imports
-from kiwimark import kiwimark
+
+# Because Kiwimark is not installed into the Python library we need to load it
+# manually.
+scriptfile, pathname, description = imp.find_module("kiwimark", ["../kiwimark"])
+try:
+    kiwimark = imp.load_module("kiwimark", scriptfile, pathname, description)
+finally:
+    scriptfile.close()
 
 if (__name__ == "__main__"):
 
