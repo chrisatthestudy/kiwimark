@@ -381,6 +381,23 @@ class KiwiMarkup:
 
         return re.sub(pattern, _r, string)
 
+    def applyInlineMarkup(self, line):
+        """
+        Applies markup to the supplied line and returns the results. It
+        assumes the self.line holds the additional details for the line.
+        """
+        if not self.line.isOrgHeader:
+            line = self.boldStartPattern.sub(r"\1<b>\3", line)
+            line = self.boldEndPattern.sub(r"\1</b>\3", line)
+        line = self.emphStartPattern.sub(r"\1<i>\3", line)
+        line = self.emphEndPattern.sub(r"\1</i>\3", line)
+        line = self.mdImgPattern.sub(r"<img src='\2' alt='\1' title='\1'/>", line)
+        line = self.re_sub(self.imgPattern, r"<img src='\7' class='\3' alt='\6' title='\6'/>", line)
+        line = self.urlPattern.sub(r"<a href='\2'>\1</a>", line)
+        line = self.footnoteTargetPattern.sub(r"\1. <a name='footnote_target_\1' href='#footnote_ref_\1'>&#160;&#8617;</a>", line)
+        line = self.footnotePattern.sub(r"<a name='footnote_ref_\1' href='#footnote_target_\1'>[<sup>\1</sup>]</a>", line)
+        return line
+        
     def processLine(self):
         """
         Processes the current line, converting it into the appropriate
@@ -432,6 +449,7 @@ class KiwiMarkup:
                 self.startTable()
                 self.output.append("    <tr>")
                 for column in self.line.tableColumns:
+                    column = self.applyInlineMarkup(column)
                     if self.line.isTableHeader:
                         self.output.append("        <th>%s</th>" % column)
                     else:
@@ -464,16 +482,7 @@ class KiwiMarkup:
 
             if includeLine:
                 if not self.state.inBlock and not self.state.inCodeSection:
-                    if not self.line.isOrgHeader:
-                        self.thisLine = self.boldStartPattern.sub(r"\1<b>\3", self.thisLine)
-                        self.thisLine = self.boldEndPattern.sub(r"\1</b>\3", self.thisLine)
-                    self.thisLine = self.emphStartPattern.sub(r"\1<i>\3", self.thisLine)
-                    self.thisLine = self.emphEndPattern.sub(r"\1</i>\3", self.thisLine)
-                    self.thisLine = self.mdImgPattern.sub(r"<img src='\2' alt='\1' title='\1'/>", self.thisLine)
-                    self.thisLine = self.re_sub(self.imgPattern, r"<img src='\7' class='\3' alt='\6' title='\6'/>", self.thisLine)
-                    self.thisLine = self.urlPattern.sub(r"<a href='\2'>\1</a>", self.thisLine)
-                    self.thisLine = self.footnoteTargetPattern.sub(r"\1. <a name='footnote_target_\1' href='#footnote_ref_\1'>&#160;&#8617;</a>", self.thisLine)
-                    self.thisLine = self.footnotePattern.sub(r"<a name='footnote_ref_\1' href='#footnote_target_\1'>[<sup>\1</sup>]</a>", self.thisLine)
+                    self.thisLine = self.applyInlineMarkup(self.thisLine)
                 else:
                     self.thisLine = cgi.escape(self.thisLine)
                 self.output.append(self.thisLine)
@@ -695,5 +704,3 @@ if __name__ == "__main__":
         kiwi = KiwiMarkup()
         kiwi.execute(lines, KIWI_MODE_STD)
         print("\n".join(kiwi.output))
-
-
