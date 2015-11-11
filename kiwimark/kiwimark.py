@@ -570,9 +570,9 @@ class KiwiLineScanner:
             self.isParagraph = False
         else:
             self.check_for_header(thisLine, nextLine)
-            self.check_for_list(thisLine, nextLine)
             self.check_for_table(thisLine, nextLine)
             self.check_for_block(thisLine)
+            self.check_for_list(thisLine, nextLine)
             self.check_for_horizontal_line(thisLine)
             self.check_for_code_start(thisLine)
             self.check_for_code_end(thisLine)
@@ -606,7 +606,7 @@ class KiwiLineScanner:
 
     def check_for_list(self, thisLine, nextLine):
         match = re.search(self.listPattern, thisLine)
-        if match:
+        if match and not self.state.inBlock:
             self.isParagraph = False
             self.isList = True
 
