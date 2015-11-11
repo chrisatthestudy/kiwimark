@@ -656,7 +656,7 @@ class KiwiLineScanner:
         Checks for text which indented by at least 4 spaces, which will be
         treated as a PRE block.
         """
-        if thisLine[0:4] == "    ":
+        if thisLine[0:4] == "    " and not self.state.inTable:
             self.isParagraph = False
             self.isBlock = True
 
