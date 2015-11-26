@@ -3,7 +3,7 @@ Reference Document for Kiwimark
 Version 0.9.0
 ------------------------------------------------------------------------------
 If the _input.txt_ file is processed through Kiwimark, the results should
-match with the [_output.html_](output.html) file. This file attempts to
+match with the [**output.html**](output.html) file. This file attempts to
 exercise all the features implemented by Kiwimark.
 
 ### Features exercised by this file
@@ -46,8 +46,8 @@ faucibus non eleifend a, varius quis odio. Quisque aliquet neque quis quam
 volutpat at vulputate felis egestas.
 
 Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere
-cubilia Curae; Pellentesque habitant morbi tristique senectus et netus et
-malesuada fames ac turpis egestas. Suspendisse volutpat ullamcorper fringilla.
+cubilia Curae; "_Pellentesque habitant morbi tristique senectus et netus et
+malesuada fames ac turpis egestas_". Suspendisse volutpat ullamcorper fringilla.
 Proin egestas laoreet tempor. Vivamus nec porta enim. Integer dignissim, urna
 vel lobortis blandit, diam justo semper urna, sed accumsan lorem magna vitae
 mauris. Aenean quis blandit turpis. Pellentesque habitant morbi tristique

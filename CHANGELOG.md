@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.9.6] - 2015-11-26
+- Improve detection of bold and emphasized markup
+
 ## [0.9.5] - 2015-11-11
 - Fix conflict between blocks and lists
 
