@@ -2,8 +2,8 @@ Reference Document for Kiwimark
 ==============================================================================
 Version 0.9.0
 ------------------------------------------------------------------------------
-If the _input.txt_ file is processed through Kiwimark, the results should
-match with the [**output.html**](output.html) file. This file attempts to
+If the _**input.txt**_ file is processed through Kiwimark, the results should
+match with the [**_output.html_**](output.html) file. This file attempts to
 exercise all the features implemented by Kiwimark.
 
 ### Features exercised by this file

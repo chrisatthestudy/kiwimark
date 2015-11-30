@@ -38,10 +38,10 @@ LIST_REGEX = r"^([\s]*)[\*][\s]+(.*)"
 TABLE_HEADER_REGEX = r"^[\s]{0,3}(\||\+)*((-{3,})(\||\+))+"
 
 # Regexes for bold and emphasized text
-BOLD_START_REGEX = r"(^|[\[\]\s])(\*\*)([^\s])"
-BOLD_END_REGEX = r"([^\s])(\*\*)([\):;.,?\[\]\s]+|$)"
-EMPH_START_REGEX = r"(^|[\[\]\s\"])(_)([^\s])"
-EMPH_END_REGEX = r"([^\s])(_)([\):;.,?\"\[\]\s]+|$)"
+BOLD_START_REGEX = r"(^|[\[\]\s]| _)(\*\*)([^\s])"
+BOLD_END_REGEX = r"([^\s])(\*\*)(_ |[\):;.,?\[\]\s]+|$)"
+EMPH_START_REGEX = r"(^|[\[\]\s\"]|<b>)(_)([^\s])"
+EMPH_END_REGEX = r"([^\s])(_)(<\/b>|[\):;.,?\"\[\]\s]+|$)"
 
 # Regex for Markdown-style URL mark-up: [title-text](path/to/url)
 URL_REGEX = r"\[([^]]*)\]\(([^\)]*)\)"
