@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.9.8] - 2016-03-16
+- Add support for org-mode style URL links
+
 ## [0.9.7] - 2015-11-30
 - Improve detection of bold and emphasized markup again
 

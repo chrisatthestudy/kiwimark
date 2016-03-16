@@ -46,6 +46,9 @@ EMPH_END_REGEX = r"([^\s])(_)(<\/b>|[\):;.,?\"\[\]\s]+|$)"
 # Regex for Markdown-style URL mark-up: [title-text](path/to/url)
 URL_REGEX = r"\[([^]]*)\]\(([^\)]*)\)"
 
+# Regex for org-mode URL mark-up: [[path/to/url][title-text]]
+ORG_URL_REGEX = r"\[\[([^]]*)\]\[([^]]*)\]\]"
+
 # Regex for Markdown-style image mark-up: ![alt-text](path/to/image.png)
 MD_IMG_REGEX = r"!\[([^]]*)\]\(([^\)]*)\)"
 
@@ -92,6 +95,7 @@ class KiwiMarkup:
         self.emphStartPattern = re.compile(EMPH_START_REGEX)
         self.emphEndPattern = re.compile(EMPH_END_REGEX)
         self.urlPattern = re.compile(URL_REGEX)
+        self.orgmodeUrlPattern = re.compile(ORG_URL_REGEX)
         self.mdImgPattern = re.compile(MD_IMG_REGEX)
         self.imgPattern = re.compile(IMG_REGEX)
         self.footnotePattern = re.compile(FOOTNOTE_REGEX)
@@ -394,6 +398,7 @@ class KiwiMarkup:
         line = self.mdImgPattern.sub(r"<img src='\2' alt='\1' title='\1'/>", line)
         line = self.re_sub(self.imgPattern, r"<img src='\7' class='\3' alt='\6' title='\6'/>", line)
         line = self.urlPattern.sub(r"<a href='\2'>\1</a>", line)
+        line = self.orgmodeUrlPattern.sub(r"<a href='\1'>\2</a>", line)
         line = self.footnoteTargetPattern.sub(r"\1. <a name='footnote_target_\1' href='#footnote_ref_\1'>&#160;&#8617;</a>", line)
         line = self.footnotePattern.sub(r"<a name='footnote_ref_\1' href='#footnote_target_\1'>[<sup>\1</sup>]</a>", line)
         return line
