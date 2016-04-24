@@ -44,7 +44,7 @@ EMPH_START_REGEX = r"(^|[\[\]\s\"]|<b>)(_)([^\s])"
 EMPH_END_REGEX = r"([^\s])(_)(<\/b>|[\):;.,?\"\[\]\s]+|$)"
 
 # Regex for Markdown-style URL mark-up: [title-text](path/to/url)
-URL_REGEX = r"\[([^]]*)\]\(([^\)]*)\)"
+MD_URL_REGEX = r"\[([^]]*)\]\(([^\)]*)\)"
 
 # Regex for org-mode URL mark-up: [[path/to/url][title-text]]
 ORG_URL_REGEX = r"\[\[([^]]*)\]\[([^]]*)\]\]"
@@ -60,6 +60,18 @@ MD_IMG_REGEX = r"!\[([^]]*)\]\(([^\)]*)\)"
 # empty, the groups will still exist (as groups 3 and 6) but will be
 # empty.
 IMG_REGEX = r"\[img(()|\.([^\]:]*))(()|:([^\]]*))\]\(([^\)]*)\)"
+
+# AUDIO_REGEX matches: [audio.class-name:alt-text](path/to/image.png) where the
+# class-name and alt-text elements are optional, but the regex will return
+# empty groups if either of them is missing (see the IMG_REGEX above for
+# additional details about the groups).
+AUDIO_REGEX = r"\[audio(()|\.([^\]:]*))(()|:([^\]]*))\]\(([^\)]*)\)"
+
+# LINK_REGEX matches: [link.class-name:alt-text](path/to/link) where the
+# class-name and alt-text elements are optional, but the regex will return
+# empty groups if either of them is missing (see the IMG_REGEX above for
+# additional details about the groups).
+LINK_REGEX = r"\[link(()|\.([^\]:]*))(()|:([^\]]*))\]\(([^\)]*)\)"
 
 # FOOTNOTE_REGEX for footnotes (links to footnote_nn)
 FOOTNOTE_REGEX = r"\[\^([0-9]+)\]"
@@ -94,10 +106,12 @@ class KiwiMarkup:
         self.boldEndPattern = re.compile(BOLD_END_REGEX)
         self.emphStartPattern = re.compile(EMPH_START_REGEX)
         self.emphEndPattern = re.compile(EMPH_END_REGEX)
-        self.urlPattern = re.compile(URL_REGEX)
+        self.mdUrlPattern = re.compile(MD_URL_REGEX)
         self.orgmodeUrlPattern = re.compile(ORG_URL_REGEX)
         self.mdImgPattern = re.compile(MD_IMG_REGEX)
         self.imgPattern = re.compile(IMG_REGEX)
+        self.audioPattern = re.compile(AUDIO_REGEX)
+        self.linkPattern = re.compile(LINK_REGEX)
         self.footnotePattern = re.compile(FOOTNOTE_REGEX)
         self.footnoteTargetPattern = re.compile(FOOTNOTE_TARGET_REGEX)
 
@@ -397,7 +411,9 @@ class KiwiMarkup:
         line = self.emphEndPattern.sub(r"\1</i>\3", line)
         line = self.mdImgPattern.sub(r"<img src='\2' alt='\1' title='\1'/>", line)
         line = self.re_sub(self.imgPattern, r"<img src='\7' class='\3' alt='\6' title='\6'/>", line)
-        line = self.urlPattern.sub(r"<a href='\2'>\1</a>", line)
+        line = self.re_sub(self.audioPattern, r"<audio width='300px' height='32px' src='\7' class='\3' controls='controls'> Your browser does not support audio playback. </audio>", line)
+        line = self.re_sub(self.linkPattern, r"<a href='\7' class='\3' alt='\6'>\6</a>", line)
+        line = self.mdUrlPattern.sub(r"<a href='\2'>\1</a>", line)
         line = self.orgmodeUrlPattern.sub(r"<a href='\1'>\2</a>", line)
         line = self.footnoteTargetPattern.sub(r"\1. <a name='footnote_target_\1' href='#footnote_ref_\1'>&#160;&#8617;</a>", line)
         line = self.footnotePattern.sub(r"<a name='footnote_ref_\1' href='#footnote_target_\1'>[<sup>\1</sup>]</a>", line)

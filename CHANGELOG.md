@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.9.9] - 2016-04-21
+- Add support for audio elements
+- Add new link markup to support CSS class
+
 ## [0.9.8] - 2016-03-16
 - Add support for org-mode style URL links
 
