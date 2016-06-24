@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.9.10] - 2016-06-24
+- Fix indentation of blocks
+
 ## [0.9.9] - 2016-04-21
 - Add support for audio elements
 - Add new link markup to support CSS class

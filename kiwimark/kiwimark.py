@@ -505,6 +505,7 @@ class KiwiMarkup:
                 if not self.state.inBlock and not self.state.inCodeSection:
                     self.thisLine = self.applyInlineMarkup(self.thisLine)
                 else:
+                    self.thisLine = self.thisLine[4:]
                     self.thisLine = cgi.escape(self.thisLine)
                 self.output.append(self.thisLine)
 
