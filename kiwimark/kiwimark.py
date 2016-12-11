@@ -28,10 +28,14 @@ KIWI_MODE_ORG = 1
 # to the end of the line -- these will be omitted from the output.
 HEADER_REGEX = r"^[\s]{0,3}([#]{1,6})[\s]*([^#]*)"
 
-# Regex for list items, optionally indented by whitespace, and
-# indicated by a single asterisk followed by whitespace and then
-# the actual text of the item.
-LIST_REGEX = r"^([\s]*)[\*][\s]+(.*)"
+# Regex for org-mode headers, starting with a row of up to 6 '*'
+# characters.
+ORG_HEADER_REGEX = r"^[\s]{0,3}([\*]{1,6})(.*)"
+
+# Regex for list items, optionally indented by whitespace, and indicated by a
+# single dash or asterisk followed by whitespace and then the actual text of
+# the item.
+LIST_REGEX = r"^([\s]*)[-\*][\s]+(.*)"
 
 # Regex for table headers, which consist of a row of '-' characters
 # split up by one or more '|' characters or '+' characters.
@@ -309,14 +313,6 @@ class KiwiMarkup:
             self.output.append('<p>')
             self.state.inOrgSection = True
 
-    def endOrgSection(self):
-        """
-        Ends any open org-header section. If no section is open, does nothing.
-        """
-        if self.state.inOrgSection:
-            self.output.append('</p>')
-            self.state.inOrgSection = False
-
     def startCodeSection(self):
         """
         Starts a block of text that should be formatted as code
@@ -339,7 +335,6 @@ class KiwiMarkup:
         """
         Closes any/all open tags
         """
-        self.endOrgSection()
         self.endBlock()
         self.endAllLists()
         self.endTable()
@@ -404,9 +399,8 @@ class KiwiMarkup:
         Applies markup to the supplied line and returns the results. It
         assumes the self.line holds the additional details for the line.
         """
-        if not self.line.isOrgHeader:
-            line = self.boldStartPattern.sub(r"\1<b>\3", line)
-            line = self.boldEndPattern.sub(r"\1</b>\3", line)
+        line = self.boldStartPattern.sub(r"\1<b>\3", line)
+        line = self.boldEndPattern.sub(r"\1</b>\3", line)
         line = self.emphStartPattern.sub(r"\1<i>\3", line)
         line = self.emphEndPattern.sub(r"\1</i>\3", line)
         line = self.mdImgPattern.sub(r"<img src='\2' alt='\1' title='\1'/>", line)
@@ -430,11 +424,7 @@ class KiwiMarkup:
             # appropriate actions, based on the line type
             self.line.scan(self.thisLine, self.nextLine, self.state)
 
-            if self.mode == KIWI_MODE_ORG and self.line.isOrgHeader:
-                self.startOrgSection()
-                self.thisLine = "%s<br/>" % self.thisLine
-
-            elif self.line.isCodeStart:
+            if self.line.isCodeStart:
                 self.endAllSections()
                 self.startCodeSection()
                 includeLine = False
@@ -449,21 +439,18 @@ class KiwiMarkup:
                 pass
             
             elif self.line.isList:
-                self.endOrgSection()
                 self.endBlock()
                 self.endTable()
                 self.endParagraph()
                 self.addListLine()
 
             elif self.line.isBlock:
-                self.endOrgSection()
                 self.endAllLists()
                 self.endTable()
                 self.endParagraph()
                 self.startBlock()
 
             elif self.line.isTable:
-                self.endOrgSection()
                 self.endBlock()
                 self.endAllLists()
                 self.endParagraph()
@@ -487,14 +474,12 @@ class KiwiMarkup:
                 self.thisLine = "<hr>"
 
             elif self.line.isParagraph:
-                self.endOrgSection()
                 self.endBlock()
                 self.endAllLists()
                 self.endTable()
                 self.startParagraph()
 
             elif self.line.isBlankLine:
-                self.endOrgSection()
                 self.endAllLists()
                 self.endTable()
                 self.endParagraph()
@@ -519,7 +504,6 @@ class KiwiState:
     inTable = False
     inList = False
     inBlock = False
-    inOrgSection = False
     inCodeSection = False
 
 class KiwiLineScanner:
@@ -534,7 +518,6 @@ class KiwiLineScanner:
     isBlock = False
     isBlank = False
     isHorizontalLine = False
-    isOrgHeader = False
 
     headerLevel = 0
     headerText = ""
@@ -548,6 +531,7 @@ class KiwiLineScanner:
 
     def __init__(self, mode):
         self.headerPattern = re.compile(HEADER_REGEX)
+        self.orgHeaderPattern = re.compile(ORG_HEADER_REGEX)
         self.listPattern   = re.compile(LIST_REGEX)
         self.tableHeaderPattern = re.compile(TABLE_HEADER_REGEX)
         self.codeStartPattern = re.compile(CODEBLOCK_START_REGEX)
@@ -562,7 +546,6 @@ class KiwiLineScanner:
         self.isTableHeader = False
         self.isBlankLine = False
         self.isBlock = False
-        self.isOrgHeader = False
         self.isCodeStart = False
         self.isCodeEnd = False
 
@@ -591,6 +574,18 @@ class KiwiLineScanner:
             self.isBlankLine = True
             self.isParagraph = False
         else:
+            if (self.mode == KIWI_MODE_ORG) and (thisLine.strip()[0] == "*"):
+                match = re.search(self.orgHeaderPattern, thisLine)
+                if match:
+                    elements = match.groups()
+                    header = elements[0]
+                    level = len(header)
+                    text = ""
+                    if (len(elements) > 1):
+                        text = elements[1].strip()
+                        # Reconstruct the line as a list
+                        thisLine = "%s* %s" % (" " * level, text)
+            
             self.check_for_header(thisLine, nextLine)
             self.check_for_table(thisLine, nextLine)
             self.check_for_block(thisLine)
@@ -598,8 +593,6 @@ class KiwiLineScanner:
             self.check_for_horizontal_line(thisLine)
             self.check_for_code_start(thisLine)
             self.check_for_code_end(thisLine)
-            if self.mode == KIWI_MODE_ORG:
-                self.check_for_org_header(thisLine)
 
     def check_for_header(self, thisLine, nextLine):
         # Check for '#' style of header
@@ -692,16 +685,6 @@ class KiwiLineScanner:
             self.isParagraph = False
             self.isHorizontalLine = True
 
-    def check_for_org_header(self, thisLine):
-        """
-        Any line which begins (after any whitespace) with an asterisk is assumed
-        to be an org-mode header. Note that this method is only called if the
-        file is marked as an org-mode file.
-        """
-        if thisLine.strip()[0] == "*":
-            self.isParagraph = False
-            self.isOrgHeader = True
-
     def check_for_code_start(self, thisLine):
         match = re.search(self.codeStartPattern, thisLine)
         if match:
@@ -724,5 +707,5 @@ if __name__ == "__main__":
         lines = f.readlines()
         f.close()
         kiwi = KiwiMarkup()
-        kiwi.execute(lines, KIWI_MODE_STD)
+        kiwi.execute(lines)
         print("\n".join(kiwi.output))

@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.9.11] - 2016-12-11
+- Improve handling of org-mode files
+
 ## [0.9.10] - 2016-06-24
 - Fix indentation of blocks
 
